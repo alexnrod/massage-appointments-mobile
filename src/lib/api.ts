@@ -53,7 +53,9 @@ export async function api<T = unknown>(path: string, init: { method?: string; bo
 
 export async function login(password: string) {
   try {
-    const data = await api<{ token: string }>('/api/admin/auth', { method: 'POST', body: { password, mobile: true } });
+    const data = await api<{ token?: string }>('/api/admin/auth', { method: 'POST', body: { password, mobile: true } });
+    // A backend without mobile login answers 200 without a token.
+    if (!data?.token) throw new ApiError(500, 'Сервер не поддерживает вход из приложения. Обновите сайт.');
     setToken(data.token);
   } catch (e) {
     if (e instanceof ApiError && e.status === 401) throw new ApiError(401, 'Неверный пароль');
