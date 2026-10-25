@@ -51,7 +51,8 @@ jobs:
       - uses: expo/expo-github-action@eab7a230208c952974db8c3245cfd78402c7b385 # 9.0.0
         with:
           eas-version: latest
-          packager: pnpm
+          # npm: pnpm 12 fails the global eas-cli install on its unapproved build scripts (ERR_PNPM_IGNORED_BUILDS).
+          packager: npm
           token: ${{ secrets.EXPO_TOKEN }}
 
       - run: pnpm install --frozen-lockfile
