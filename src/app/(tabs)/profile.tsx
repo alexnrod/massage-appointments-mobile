@@ -1,20 +1,23 @@
 import Constants from 'expo-constants';
 import { useState } from 'react';
-import { Alert, Linking, ScrollView, StyleSheet, Text, TextInput } from 'react-native';
+import { Alert, Linking, Pressable, ScrollView, Share, StyleSheet, Text, TextInput } from 'react-native';
 
 import { api, logout } from '@/lib/api';
 import { registerForPush, unregisterPush } from '@/lib/push';
-import { adminName, batteryHintDone, setAdminName, setBatteryHintDone } from '@/lib/settings';
+import { adminName, setAdminName } from '@/lib/settings';
 import type { HotNews } from '@/lib/types';
 import { mutate, useApi } from '@/lib/useApi';
 import { Button, Card, SectionLabel } from '@/ui/primitives';
 import { colors, font, radius, spacing } from '@/ui/theme';
 
+// Shared with clients as is; Cyrillic reads better in messengers than the punycode the app calls.
+const SITE_URL = 'https://массажквячеславу.рф';
+
 export default function ProfileScreen() {
   const [name, setName] = useState(adminName);
   const news = useApi<HotNews | null>('/api/admin/hot-news');
   const [busy, setBusy] = useState<string | null>(null);
-  const [hintDone, setHintDone] = useState(batteryHintDone);
+  const [advanced, setAdvanced] = useState(false);
 
   const savedNews = news.data?.content ?? '';
 
@@ -51,6 +54,19 @@ export default function ProfileScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
+      <SectionLabel>Ссылка для клиентов</SectionLabel>
+      <Card style={styles.gap}>
+        <Text style={font.body} selectable>
+          {SITE_URL}
+        </Text>
+        {/* Android's share sheet has "Copy" on top and sends straight to messengers. */}
+        <Button title="Поделиться или скопировать" onPress={() => Share.share({ message: SITE_URL })} />
+      </Card>
+
+      <SectionLabel>Горячая новость на сайте</SectionLabel>
+      {/* Keyed by the saved text so the editor resets when the server copy changes. */}
+      <NewsEditor key={savedNews} saved={savedNews} />
+
       <SectionLabel>Как вас зовут</SectionLabel>
       <TextInput
         style={styles.input}
@@ -61,34 +77,25 @@ export default function ProfileScreen() {
         onEndEditing={() => setAdminName(name)}
       />
 
-      <SectionLabel>Горячая новость на сайте</SectionLabel>
-      {/* Keyed by the saved text so the editor resets when the server copy changes. */}
-      <NewsEditor key={savedNews} saved={savedNews} />
-
-      <SectionLabel>Уведомления</SectionLabel>
-      {!hintDone && (
-        <Card style={[styles.gap, styles.hint]}>
-          <Text style={font.heading}>Чтобы уведомления не терялись на Xiaomi</Text>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityState={{ expanded: advanced }}
+        onPress={() => setAdvanced(!advanced)}
+        style={styles.advancedToggle}>
+        <Text style={font.label}>ДОПОЛНИТЕЛЬНО {advanced ? '▾' : '▸'}</Text>
+      </Pressable>
+      {advanced && (
+        <Card style={styles.gap}>
           <Text style={font.body}>
-            В настройках приложения включите «Автозапуск», в «Контроле активности» выберите «Нет ограничений», а в «Уведомлениях» включите
-            всплывающие уведомления и уведомления на экране блокировки.
+            Если уведомления не приходят, в настройках приложения включите «Автозапуск», в «Контроле активности» выберите «Нет
+            ограничений», а в «Уведомлениях» включите всплывающие уведомления и уведомления на экране блокировки.
           </Text>
-          <Button title="Открыть настройки приложения" onPress={() => Linking.openSettings()} />
-          <Button
-            title="Готово"
-            variant="ghost"
-            onPress={() => {
-              setBatteryHintDone();
-              setHintDone(true);
-            }}
-          />
+          <Button title="Открыть настройки приложения" variant="ghost" onPress={() => Linking.openSettings()} />
+          <Button title="Отправить проверочное уведомление" variant="ghost" onPress={testPush} busy={busy === 'push'} />
+          <Text style={font.secondary}>Версия {Constants.expoConfig?.version}</Text>
+          <Button title="Выйти" variant="danger" onPress={confirmLogout} />
         </Card>
       )}
-      <Button title="Отправить проверочное уведомление" variant="ghost" onPress={testPush} busy={busy === 'push'} />
-
-      <SectionLabel>Приложение</SectionLabel>
-      <Text style={font.secondary}>Версия {Constants.expoConfig?.version}</Text>
-      <Button title="Выйти" variant="danger" onPress={confirmLogout} style={styles.logout} />
     </ScrollView>
   );
 }
@@ -136,6 +143,5 @@ const styles = StyleSheet.create({
     padding: spacing.md,
   },
   multiline: { minHeight: 96, textAlignVertical: 'top' },
-  hint: { borderColor: colors.gold, borderWidth: 2 },
-  logout: { marginTop: spacing.lg },
+  advancedToggle: { marginTop: spacing.xl, paddingVertical: spacing.sm },
 });

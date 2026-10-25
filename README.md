@@ -41,4 +41,4 @@ After installing, open Settings → Apps → Manage apps → Массаж:
 2. Battery saver: No restrictions.
 3. Notifications: allowed, with floating and lock screen notifications on.
 
-Then log in and tap "Отправить проверочное уведомление" in Профиль with the screen locked.
+Then log in and tap "Отправить проверочное уведомление" in Профиль → Дополнительно with the screen locked.
