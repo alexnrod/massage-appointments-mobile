@@ -1,41 +1,52 @@
-import { Stack } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
+import * as Notifications from 'expo-notifications';
+import { router, Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { AppState } from 'react-native';
 
-import { useDbMigrations } from '@/db/client';
-
-SplashScreen.preventAutoHideAsync();
+import { useIsLoggedIn } from '@/lib/api';
+import { refreshAll } from '@/lib/useApi';
+import { colors } from '@/ui/theme';
 
 export default function RootLayout() {
-  const { success, error } = useDbMigrations();
+  const loggedIn = useIsLoggedIn();
+  const response = Notifications.useLastNotificationResponse();
 
-  // A failed migration has to hide the splash too, or its error screen renders unseen underneath.
+  // A tap on a booking push opens that booking, also when it started the app.
   useEffect(() => {
-    if (success || error) SplashScreen.hideAsync();
-  }, [success, error]);
+    const id = response?.notification.request.content.data?.bookingId;
+    if (!loggedIn || typeof id !== 'string' || response?.actionIdentifier !== Notifications.DEFAULT_ACTION_IDENTIFIER) return;
+    Notifications.clearLastNotificationResponseAsync();
+    router.push({ pathname: '/booking/[id]', params: { id } });
+  }, [response, loggedIn]);
 
-  if (error) {
-    return (
-      <View style={styles.center}>
-        <Text>Database migration failed</Text>
-        <Text>{error.message}</Text>
-      </View>
-    );
-  }
-  if (!success) return null;
+  useEffect(() => {
+    const received = Notifications.addNotificationReceivedListener(refreshAll);
+    const foreground = AppState.addEventListener('change', (s) => s === 'active' && refreshAll());
+    return () => {
+      received.remove();
+      foreground.remove();
+    };
+  }, []);
 
   return (
     <>
-      <StatusBar style="auto" />
-      <Stack>
-        <Stack.Screen name="index" options={{ title: 'Appointments' }} />
+      <StatusBar style="dark" />
+      <Stack
+        screenOptions={{
+          headerStyle: { backgroundColor: colors.background },
+          headerShadowVisible: false,
+          headerTintColor: colors.text,
+          contentStyle: { backgroundColor: colors.background },
+        }}>
+        <Stack.Protected guard={loggedIn}>
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="booking/[id]" options={{ title: 'Заявка' }} />
+        </Stack.Protected>
+        <Stack.Protected guard={!loggedIn}>
+          <Stack.Screen name="login" options={{ headerShown: false }} />
+        </Stack.Protected>
       </Stack>
     </>
   );
 }
-
-const styles = StyleSheet.create({
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 8, padding: 24 },
-});

@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024"><rect width="1024" height="1024" fill="#FFE6D6"/><g transform="translate(512 512) scale(0.92) translate(-512 -560)"><g stroke="#4A2C24" stroke-width="16" stroke-linejoin="round" stroke-linecap="round">
+  <path d="M220 700 L200 830 M804 700 L824 830" fill="none"/>
+  <rect x="120" y="640" width="784" height="60" rx="30" fill="#B98AE0"/>
+  <rect x="330" y="540" width="520" height="110" rx="55" fill="#F59A72"/>
+  <rect x="580" y="556" width="290" height="94" rx="40" fill="#FFFFFF"/>
+  <circle cx="250" cy="575" r="80" fill="#F59A72"/>
+  <path d="M190 545 Q250 470 320 530" fill="#6B3F2E"/>
+  <path d="M212 580 Q232 600 252 580" fill="none"/>
+</g>
+<circle cx="200" cy="612" r="18" fill="#FF6F6F" opacity="0.5"/>
+<g transform="translate(430 470) rotate(-6)" stroke="#4A2C24" stroke-width="14" stroke-linejoin="round" fill="#FFD2B3">
+  <rect x="-40" y="10" width="22" height="66" rx="11"/><rect x="-18" y="10" width="22" height="74" rx="11"/>
+  <rect x="4" y="10" width="22" height="72" rx="11"/><rect x="26" y="10" width="20" height="62" rx="10"/>
+  <rect x="-50" y="-70" width="100" height="110" rx="44"/>
+  <rect x="-40" y="10" width="86" height="24" stroke="none"/>
+</g>
+<g transform="translate(540 470) rotate(6)" stroke="#4A2C24" stroke-width="14" stroke-linejoin="round" fill="#FFD2B3">
+  <rect x="-40" y="10" width="22" height="66" rx="11"/><rect x="-18" y="10" width="22" height="74" rx="11"/>
+  <rect x="4" y="10" width="22" height="72" rx="11"/><rect x="26" y="10" width="20" height="62" rx="10"/>
+  <rect x="-50" y="-70" width="100" height="110" rx="44"/>
+  <rect x="-40" y="10" width="86" height="24" stroke="none"/>
+</g>
+<g fill="none" stroke="#4A2C24" stroke-width="12" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M190 380 h40 l-40 45 h40"/><path d="M110 300 h56 l-56 62 h56"/>
+</g>
+<path d="M760 330 l18 -48 l18 48 l48 18 l-48 18 l-18 48 l-18 -48 l-48 -18 z" fill="#FFB84D"/>
+<path d="M870 470 l12 -30 l12 30 l30 12 l-30 12 l-12 30 l-12 -30 l-30 -12 z" fill="#FFFFFF"/></g></svg>

@@ -1,0 +1,141 @@
+import Constants from 'expo-constants';
+import { useState } from 'react';
+import { Alert, Linking, ScrollView, StyleSheet, Text, TextInput } from 'react-native';
+
+import { api, logout } from '@/lib/api';
+import { registerForPush, unregisterPush } from '@/lib/push';
+import { adminName, batteryHintDone, setAdminName, setBatteryHintDone } from '@/lib/settings';
+import type { HotNews } from '@/lib/types';
+import { mutate, useApi } from '@/lib/useApi';
+import { Button, Card, SectionLabel } from '@/ui/primitives';
+import { colors, font, radius, spacing } from '@/ui/theme';
+
+export default function ProfileScreen() {
+  const [name, setName] = useState(adminName);
+  const news = useApi<HotNews | null>('/api/admin/hot-news');
+  const [busy, setBusy] = useState<string | null>(null);
+  const [hintDone, setHintDone] = useState(batteryHintDone);
+
+  const savedNews = news.data?.content ?? '';
+
+  async function testPush() {
+    setBusy('push');
+    try {
+      if (!(await registerForPush())) {
+        Alert.alert('Уведомления выключены', 'Разрешите уведомления для приложения в настройках телефона.', [
+          { text: 'Отмена', style: 'cancel' },
+          { text: 'Открыть настройки', onPress: () => Linking.openSettings() },
+        ]);
+      } else {
+        await api('/api/admin/push-devices/test', { method: 'POST' });
+      }
+    } catch (e) {
+      Alert.alert('Не получилось', (e as Error).message);
+    }
+    setBusy(null);
+  }
+
+  function confirmLogout() {
+    Alert.alert('Выйти?', 'Уведомления на этот телефон перестанут приходить.', [
+      { text: 'Отмена', style: 'cancel' },
+      {
+        text: 'Выйти',
+        style: 'destructive',
+        onPress: async () => {
+          await unregisterPush();
+          logout();
+        },
+      },
+    ]);
+  }
+
+  return (
+    <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
+      <SectionLabel>Как вас зовут</SectionLabel>
+      <TextInput
+        style={styles.input}
+        placeholder="Имя"
+        placeholderTextColor={colors.textSecondary}
+        value={name}
+        onChangeText={setName}
+        onEndEditing={() => setAdminName(name)}
+      />
+
+      <SectionLabel>Горячая новость на сайте</SectionLabel>
+      {/* Keyed by the saved text so the editor resets when the server copy changes. */}
+      <NewsEditor key={savedNews} saved={savedNews} />
+
+      <SectionLabel>Уведомления</SectionLabel>
+      {!hintDone && (
+        <Card style={[styles.gap, styles.hint]}>
+          <Text style={font.heading}>Чтобы уведомления не терялись на Xiaomi</Text>
+          <Text style={font.body}>
+            В настройках приложения включите «Автозапуск», в «Контроле активности» выберите «Нет ограничений», а в «Уведомлениях» включите
+            всплывающие уведомления и уведомления на экране блокировки.
+          </Text>
+          <Button title="Открыть настройки приложения" onPress={() => Linking.openSettings()} />
+          <Button
+            title="Готово"
+            variant="ghost"
+            onPress={() => {
+              setBatteryHintDone();
+              setHintDone(true);
+            }}
+          />
+        </Card>
+      )}
+      <Button title="Отправить проверочное уведомление" variant="ghost" onPress={testPush} busy={busy === 'push'} />
+
+      <SectionLabel>Приложение</SectionLabel>
+      <Text style={font.secondary}>Версия {Constants.expoConfig?.version}</Text>
+      <Button title="Выйти" variant="danger" onPress={confirmLogout} style={styles.logout} />
+    </ScrollView>
+  );
+}
+
+function NewsEditor({ saved }: { saved: string }) {
+  const [text, setText] = useState(saved);
+  const [busy, setBusy] = useState(false);
+
+  async function save() {
+    setBusy(true);
+    try {
+      await mutate('/api/admin/hot-news', 'PUT', { content: text });
+      Alert.alert('Готово', text.trim() ? 'Новость опубликована на сайте.' : 'Новость убрана с сайта.');
+    } catch (e) {
+      Alert.alert('Не получилось', (e as Error).message);
+    }
+    setBusy(false);
+  }
+
+  return (
+    <Card style={styles.gap}>
+      <TextInput
+        style={[styles.input, styles.multiline]}
+        placeholder="Например: скидка 20% до конца месяца"
+        placeholderTextColor={colors.textSecondary}
+        multiline
+        value={text}
+        onChangeText={setText}
+      />
+      <Text style={font.secondary}>Пустое поле убирает новость с сайта.</Text>
+      <Button title="Сохранить" onPress={save} busy={busy} disabled={text === saved} />
+    </Card>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { padding: spacing.lg, paddingBottom: spacing.xl * 2 },
+  gap: { gap: spacing.md },
+  input: {
+    ...font.body,
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    padding: spacing.md,
+  },
+  multiline: { minHeight: 96, textAlignVertical: 'top' },
+  hint: { borderColor: colors.gold, borderWidth: 2 },
+  logout: { marginTop: spacing.lg },
+});

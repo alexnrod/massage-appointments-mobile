@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "673948578050",
+    "project_id": "massage-admin-93290",
+    "storage_bucket": "massage-admin-93290.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:673948578050:android:e7e17382342e86afe5d21b",
+        "android_client_info": {
+          "package_name": "com.rodionov.massageappointments"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyARhO4fotvnKl1dbJ-4gkohDkXbuKkfzeE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
