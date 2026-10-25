@@ -1,8 +1,9 @@
 import Constants from 'expo-constants';
 import * as Notifications from 'expo-notifications';
-import { AndroidImportance } from 'expo-notifications';
+import { AndroidImportance, SchedulableTriggerInputTypes } from 'expo-notifications';
 
 import { api } from './api';
+import { BIRTHDAY_PUSH_AT } from './season';
 
 // Show pushes while the app is open too.
 Notifications.setNotificationHandler({
@@ -24,7 +25,18 @@ export async function registerForPush(): Promise<boolean> {
   const projectId = Constants.expoConfig?.extra?.eas?.projectId ?? Constants.easConfig?.projectId;
   pushToken = (await Notifications.getExpoPushTokenAsync({ projectId })).data;
   await api('/api/admin/push-devices', { method: 'POST', body: { token: pushToken } });
+  await scheduleBirthdayPush();
   return true;
+}
+
+/** A surprise on the phone itself; the same identifier replaces the earlier schedule on every start. */
+async function scheduleBirthdayPush() {
+  if (BIRTHDAY_PUSH_AT <= new Date()) return;
+  await Notifications.scheduleNotificationAsync({
+    identifier: 'birthday-2026',
+    content: { title: 'Вячеслав, у нас есть вам кое-что сообщить :)', data: { screen: 'stats' } },
+    trigger: { type: SchedulableTriggerInputTypes.DATE, date: BIRTHDAY_PUSH_AT, channelId: 'bookings' },
+  });
 }
 
 /** Stops pushes to this phone; called before logout. */

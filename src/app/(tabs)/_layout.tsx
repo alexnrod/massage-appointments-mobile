@@ -1,8 +1,10 @@
-import { Tabs } from 'expo-router';
+import { router, Tabs } from 'expo-router';
 import { SymbolView } from 'expo-symbols';
 import { useEffect } from 'react';
 
 import { registerForPush } from '@/lib/push';
+import { season } from '@/lib/season';
+import { birthdayShown, setBirthdayShown } from '@/lib/settings';
 import type { Booking } from '@/lib/types';
 import { useApi } from '@/lib/useApi';
 import { colors } from '@/ui/theme';
@@ -14,6 +16,10 @@ export default function TabsLayout() {
   useEffect(() => {
     // Every start re-sends the token; a reinstall or a new phone gets a new one.
     registerForPush().catch((e) => console.warn('Push registration failed:', e));
+    if (season === 'birthday' && !birthdayShown()) {
+      setBirthdayShown();
+      router.navigate('/stats');
+    }
   }, []);
 
   return (

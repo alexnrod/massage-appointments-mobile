@@ -5,7 +5,9 @@ import { useEffect } from 'react';
 import { AppState } from 'react-native';
 
 import { useIsLoggedIn } from '@/lib/api';
+import { season } from '@/lib/season';
 import { refreshAll } from '@/lib/useApi';
+import { SeasonDecor } from '@/ui/SeasonDecor';
 import { colors } from '@/ui/theme';
 
 export default function RootLayout() {
@@ -14,10 +16,11 @@ export default function RootLayout() {
 
   // A tap on a booking push opens that booking, also when it started the app.
   useEffect(() => {
-    const id = response?.notification.request.content.data?.bookingId;
-    if (!loggedIn || typeof id !== 'string' || response?.actionIdentifier !== Notifications.DEFAULT_ACTION_IDENTIFIER) return;
+    const data = response?.notification.request.content.data;
+    if (!loggedIn || !data || response?.actionIdentifier !== Notifications.DEFAULT_ACTION_IDENTIFIER) return;
     Notifications.clearLastNotificationResponseAsync();
-    router.push({ pathname: '/booking/[id]', params: { id } });
+    if (typeof data.bookingId === 'string') router.push({ pathname: '/booking/[id]', params: { id: data.bookingId } });
+    else if (data.screen === 'stats') router.navigate('/stats');
   }, [response, loggedIn]);
 
   useEffect(() => {
@@ -31,7 +34,7 @@ export default function RootLayout() {
 
   return (
     <>
-      <StatusBar style="dark" />
+      <StatusBar style={season === 'newyear' ? 'light' : 'dark'} />
       <Stack
         screenOptions={{
           headerStyle: { backgroundColor: colors.background },
@@ -47,6 +50,7 @@ export default function RootLayout() {
           <Stack.Screen name="login" options={{ headerShown: false }} />
         </Stack.Protected>
       </Stack>
+      <SeasonDecor />
     </>
   );
 }

@@ -3,7 +3,8 @@ import { useCallback, useEffect, useState } from 'react';
 import { RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Animated, { ZoomIn } from 'react-native-reanimated';
 
-import { MONTHS_NOMINATIVE, MONTHS_SHORT, msk, plural } from '@/lib/format';
+import { bookingStart, MONTHS_NOMINATIVE, MONTHS_SHORT, msk, plural } from '@/lib/format';
+import { BIRTHDAY_NAME, season } from '@/lib/season';
 import { adminName, markMilestonesSeen, seenMilestones } from '@/lib/settings';
 import { computeStats } from '@/lib/stats';
 import type { Booking } from '@/lib/types';
@@ -35,7 +36,24 @@ export default function StatsScreen() {
       contentContainerStyle={styles.container}
       refreshControl={<RefreshControl refreshing={loading} onRefresh={refresh} colors={[colors.accent]} />}>
       <OfflineBanner error={error} />
-      <Text style={font.title}>{name ? `Привет, ${name}!` : 'Привет!'} 👋</Text>
+      {season === 'birthday' ? (
+        <Animated.View entering={ZoomIn.springify().damping(8)} style={styles.birthday}>
+          <Text style={styles.festiveEmoji}>🎂🎈</Text>
+          <Text style={styles.birthdayTitle}>С днём рождения, {BIRTHDAY_NAME}!</Text>
+          <Text style={styles.birthdayText}>Спасибо за этот год</Text>
+          <Text style={styles.birthdayNumber}>{acceptedSinceBirthday(data)}</Text>
+          <Text style={styles.birthdayText}>заявок принято с прошлого дня рождения 💛</Text>
+        </Animated.View>
+      ) : season === 'newyear' ? (
+        <View style={styles.newYear}>
+          <Text style={[font.title, styles.flex]}>
+            {month === 11 ? 'С наступающим' : 'С Новым годом'}, <Text style={{ color: colors.gold }}>{BIRTHDAY_NAME}!</Text>
+          </Text>
+          <Text style={styles.festiveEmoji}>🎄</Text>
+        </View>
+      ) : (
+        <Text style={font.title}>{name ? `Привет, ${name}!` : 'Привет!'} 👋</Text>
+      )}
 
       <View style={styles.hero}>
         <Text style={styles.heroLabel}>{MONTHS_NOMINATIVE[month]}</Text>
@@ -90,7 +108,10 @@ export default function StatsScreen() {
 
       <View style={styles.tiles}>
         <Card style={styles.tile}>
-          <Text style={styles.tileNumber}>{s.totalSessions}</Text>
+          <Text style={styles.tileNumber}>
+            {s.totalSessions}
+            {season === 'newyear' ? ' ☃️' : ''}
+          </Text>
           <Text style={font.secondary}>{sessions(s.totalSessions)} за всё время</Text>
         </Card>
         {s.topService && (
@@ -104,7 +125,19 @@ export default function StatsScreen() {
   );
 }
 
+// Accepted sessions since 16 November 2025, Moscow time.
+function acceptedSinceBirthday(bookings: Booking[]) {
+  const since = new Date('2025-11-16T00:00:00+03:00').toISOString();
+  return bookings.filter((b) => b.status === 'accepted' && bookingStart(b) >= since).length;
+}
+
 const styles = StyleSheet.create({
+  birthday: { backgroundColor: colors.purple, borderRadius: radius.lg, padding: spacing.xl, alignItems: 'center', gap: spacing.xs },
+  birthdayTitle: { color: '#FFFFFF', fontSize: 26, fontWeight: '800', textAlign: 'center' },
+  birthdayText: { color: '#FFFFFF', fontSize: 16, textAlign: 'center' },
+  birthdayNumber: { color: '#FFFFFF', fontSize: 64, fontWeight: '800', lineHeight: 72 },
+  newYear: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  festiveEmoji: { fontSize: 48 },
   container: { padding: spacing.lg, paddingBottom: spacing.xl * 2, gap: spacing.md },
   hero: { backgroundColor: colors.accent, borderRadius: radius.lg, padding: spacing.xl, marginTop: spacing.sm },
   heroLabel: { color: '#FFFFFFCC', fontSize: 16, fontWeight: '600' },
@@ -112,7 +145,7 @@ const styles = StyleSheet.create({
   heroText: { color: '#FFFFFF', fontSize: 18 },
   heroDelta: { color: '#FFFFFF', fontSize: 15, marginTop: spacing.md, fontWeight: '600' },
   milestone: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
-  milestoneNew: { borderColor: colors.gold, borderWidth: 2, backgroundColor: '#FFF8E8' },
+  milestoneNew: { borderColor: colors.gold, borderWidth: 2 },
   milestoneEmoji: { fontSize: 36 },
   newBadge: { color: colors.gold, fontSize: 11, fontWeight: '800', letterSpacing: 1 },
   flex: { flex: 1 },
