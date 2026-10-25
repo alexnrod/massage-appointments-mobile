@@ -19,6 +19,8 @@ export interface Booking {
   booking_start: string | null;
   status: BookingStatus;
   note: string | null;
+  /** Rubles; null until the admin sets it. */
+  price: number | null;
   created_at: string;
   slot: WorkingDay;
 }

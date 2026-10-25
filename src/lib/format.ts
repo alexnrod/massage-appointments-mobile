@@ -64,3 +64,16 @@ export function plural(n: number, one: string, few: string, many: string): strin
   if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return few;
   return many;
 }
+
+// Thousands split with a no-break space, as in "12 500 ₽".
+export const rub = (n: number) => `${String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '\u00A0')}\u00A0₽`;
+
+/** "1,5 ч" */
+export const hours = (minutes: number) => `${String(Math.round(minutes / 6) / 10).replace('.', ',')}\u00A0ч`;
+
+/** "1 ч 10 мин", "45 мин" */
+export function duration(minutes: number): string {
+  const h = Math.floor(minutes / 60);
+  const m = Math.round(minutes % 60);
+  return [h && `${h}\u00A0ч`, m && `${m}\u00A0мин`].filter(Boolean).join(' ') || '0\u00A0мин';
+}

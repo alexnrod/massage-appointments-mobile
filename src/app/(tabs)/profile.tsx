@@ -4,7 +4,6 @@ import { Alert, Linking, Pressable, ScrollView, Share, StyleSheet, Text, TextInp
 
 import { api, logout } from '@/lib/api';
 import { registerForPush, unregisterPush } from '@/lib/push';
-import { adminName, setAdminName } from '@/lib/settings';
 import type { HotNews } from '@/lib/types';
 import { mutate, useApi } from '@/lib/useApi';
 import { Button, Card, SectionLabel } from '@/ui/primitives';
@@ -14,7 +13,6 @@ import { colors, font, radius, spacing } from '@/ui/theme';
 const SITE_URL = 'https://массажквячеславу.рф';
 
 export default function ProfileScreen() {
-  const [name, setName] = useState(adminName);
   const news = useApi<HotNews | null>('/api/admin/hot-news');
   const [busy, setBusy] = useState<string | null>(null);
   const [advanced, setAdvanced] = useState(false);
@@ -66,16 +64,6 @@ export default function ProfileScreen() {
       <SectionLabel>Горячая новость на сайте</SectionLabel>
       {/* Keyed by the saved text so the editor resets when the server copy changes. */}
       <NewsEditor key={savedNews} saved={savedNews} />
-
-      <SectionLabel>Как вас зовут</SectionLabel>
-      <TextInput
-        style={styles.input}
-        placeholder="Имя"
-        placeholderTextColor={colors.textSecondary}
-        value={name}
-        onChangeText={setName}
-        onEndEditing={() => setAdminName(name)}
-      />
 
       <Pressable
         accessibilityRole="button"
